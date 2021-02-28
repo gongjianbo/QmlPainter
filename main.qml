@@ -8,7 +8,24 @@ Window {
     visible: true
     title: qsTr("Qml Painter (龚建波)")
 
-    QmlCanvas{
+    Rectangle{
         anchors.fill: parent
+        anchors.margins: 20
+        color: "darkCyan"
+    }
+
+    QmlCanvas{
+        id: canvas
+        width: parent.width/2
+        height: parent.height/2
+
+        Timer{
+            //running: true
+            repeat: true
+            interval: 1000
+            onTriggered: {
+                canvas.update();
+            }
+        }
     }
 }

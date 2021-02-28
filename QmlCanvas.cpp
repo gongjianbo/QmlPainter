@@ -1,12 +1,29 @@
 #include "QmlCanvas.h"
 
-#include <QSGNode>
-#include <QSGFlatColorMaterial>
+#include <QQuickWindow>
+#include <QSGImageNode>
+#include <QSGTexture>
+#include <QPainter>
+#include <QThread>
+#include <QDebug>
 
 QmlCanvas::QmlCanvas(QQuickItem *parent)
     : QQuickItem(parent)
 {
     setFlag(ItemHasContents, true);
+
+    qDebug()<<"main"<<QThread::currentThread();
+    connect(this, &QQuickItem::windowChanged,
+            this, [this](QQuickWindow *window){
+        if (window){
+            connect(window,&QQuickWindow::beforeSynchronizing,this,[this](){
+                qDebug()<<"before sync"<<QThread::currentThread();
+            },Qt::DirectConnection);
+            connect(window,&QQuickWindow::afterSynchronizing,this,[this](){
+                qDebug()<<"after sync"<<QThread::currentThread();
+            },Qt::DirectConnection);
+        }
+    });
 }
 
 QmlCanvas::~QmlCanvas()
@@ -14,34 +31,45 @@ QmlCanvas::~QmlCanvas()
 
 }
 
+void QmlCanvas::updatePolish()
+{
+    qDebug()<<"update polish"<<QThread::currentThread();
+    QPainter painter(&image);
+    if(painter.isActive()){
+        image.fill(QColor(255,0,0,150));
+    }
+}
+
 QSGNode *QmlCanvas::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data)
 {
-    QSGGeometryNode *node = nullptr;
-    QSGGeometry *geometry = nullptr;
-
-    if (!oldNode) {
-        node = new QSGGeometryNode;
-        geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 2);
-        geometry->setLineWidth(2);
-        geometry->setDrawingMode(QSGGeometry::DrawLineStrip);
-        node->setGeometry(geometry);
-        node->setFlag(QSGNode::OwnsGeometry);
-
-        QSGFlatColorMaterial *material = new QSGFlatColorMaterial;
-        material->setColor(QColor(255, 0, 0));
-        node->setMaterial(material);
-        node->setFlag(QSGNode::OwnsMaterial);
-    } else {
-        node = static_cast<QSGGeometryNode *>(oldNode);
-        geometry = node->geometry();
-        geometry->allocate(2);
+    qDebug()<<"node change"<<QThread::currentThread();
+    Q_UNUSED(data)
+    QSGImageNode *node = static_cast<QSGImageNode *>(oldNode);
+    if (!node) {
+        node = window()->createImageNode();
     }
 
-    QSGGeometry::Point2D *vertices = geometry->vertexDataAsPoint2D();
-    vertices[0].set(10, 10);
-    vertices[1].set(width()-10, height()-10);
-
-    node->markDirty(QSGNode::DirtyGeometry);
+    if(!image.isNull()){
+        //QMetaObject::invokeMethod(this,&QmlCanvas::paint,Qt::QueuedConnection);
+        QSGTexture *texture = window()->createTextureFromImage(image);
+        node->setRect(boundingRect());
+        //qDebug()<<boundingRect()<<texture->textureSize();
+        node->setSourceRect(QRect(QPoint(0,0),texture->textureSize()));
+        node->setTexture(texture);
+        node->setOwnsTexture(true);
+        node->markDirty(QSGNode::DirtyMaterial);
+    }
 
     return node;
+}
+
+void QmlCanvas::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+{
+    //qDebug()<<"rect change";
+    QQuickItem::geometryChanged(newGeometry,oldGeometry);
+    if(size().isValid()&&size().toSize()!=image.size()){
+        image = QImage(size().toSize(),QImage::Format_ARGB32_Premultiplied);
+        polish();
+        update();
+    }
 }
