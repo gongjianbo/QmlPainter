@@ -12,18 +12,9 @@ QmlCanvas::QmlCanvas(QQuickItem *parent)
 {
     setFlag(ItemHasContents, true);
 
-    qDebug()<<"main"<<QThread::currentThread();
-    connect(this, &QQuickItem::windowChanged,
-            this, [this](QQuickWindow *window){
-        if (window){
-            connect(window,&QQuickWindow::beforeSynchronizing,this,[this](){
-                qDebug()<<"before sync"<<QThread::currentThread();
-            },Qt::DirectConnection);
-            connect(window,&QQuickWindow::afterSynchronizing,this,[this](){
-                qDebug()<<"after sync"<<QThread::currentThread();
-            },Qt::DirectConnection);
-        }
-    });
+    //在visible、size改变时update
+    connect(this,&QQuickItem::visibleChanged,this,&QmlCanvas::repaint);
+    //qDebug()<<"main"<<QThread::currentThread();
 }
 
 QmlCanvas::~QmlCanvas()
@@ -31,29 +22,38 @@ QmlCanvas::~QmlCanvas()
 
 }
 
+void QmlCanvas::setBackgroundColor(const QColor &color)
+{
+    backgroundColor = color;
+    emit backgroundColorChanged();
+    repaint();
+}
+
 void QmlCanvas::updatePolish()
 {
-    qDebug()<<"update polish"<<QThread::currentThread();
+    //qDebug()<<"update polish"<<QThread::currentThread();
     QPainter painter(&image);
     if(painter.isActive()){
-        image.fill(QColor(255,0,0,150));
+        image.fill(backgroundColor);
+        painter.setRenderHint(QPainter::Antialiasing,true);
+        QmlPainter qml_painter(&painter);
+        emit paint(&qml_painter);
     }
 }
 
 QSGNode *QmlCanvas::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data)
 {
-    qDebug()<<"node change"<<QThread::currentThread();
+    //qDebug()<<"node change"<<QThread::currentThread();
     Q_UNUSED(data)
+    //TODO 测试节点是否释放
     QSGImageNode *node = static_cast<QSGImageNode *>(oldNode);
     if (!node) {
         node = window()->createImageNode();
     }
 
     if(!image.isNull()){
-        //QMetaObject::invokeMethod(this,&QmlCanvas::paint,Qt::QueuedConnection);
         QSGTexture *texture = window()->createTextureFromImage(image);
         node->setRect(boundingRect());
-        //qDebug()<<boundingRect()<<texture->textureSize();
         node->setSourceRect(QRect(QPoint(0,0),texture->textureSize()));
         node->setTexture(texture);
         node->setOwnsTexture(true);
@@ -69,7 +69,12 @@ void QmlCanvas::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeom
     QQuickItem::geometryChanged(newGeometry,oldGeometry);
     if(size().isValid()&&size().toSize()!=image.size()){
         image = QImage(size().toSize(),QImage::Format_ARGB32_Premultiplied);
-        polish();
-        update();
+        repaint();
     }
+}
+
+void QmlCanvas::repaint()
+{
+    polish();
+    update();
 }
