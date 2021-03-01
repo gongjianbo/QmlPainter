@@ -32,12 +32,10 @@ void QmlCanvas::setBackgroundColor(const QColor &color)
 void QmlCanvas::updatePolish()
 {
     //qDebug()<<"update polish"<<QThread::currentThread();
-    QPainter painter(&image);
+    QmlPainter painter(&image);
     if(painter.isActive()){
         image.fill(backgroundColor);
-        painter.setRenderHint(QPainter::Antialiasing,true);
-        QmlPainter qml_painter(&painter);
-        emit paint(&qml_painter);
+        emit paint(&painter);
     }
 }
 
@@ -45,9 +43,9 @@ QSGNode *QmlCanvas::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNod
 {
     //qDebug()<<"node change"<<QThread::currentThread();
     Q_UNUSED(data)
-    //TODO 测试节点是否释放
     QSGImageNode *node = static_cast<QSGImageNode *>(oldNode);
     if (!node) {
+        //初始化时调用一次创建
         node = window()->createImageNode();
     }
 

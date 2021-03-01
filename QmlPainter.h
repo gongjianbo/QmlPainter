@@ -3,19 +3,29 @@
 
 #include <QObject>
 #include <QPainter>
+#include <QImage>
 
+/**
+ * @brief 封装QPainter的部分接口
+ * @author 龚建波
+ * @date 2021-3-1
+ */
 class QmlPainter : public QObject
 {
     Q_OBJECT
 public:
-    explicit QmlPainter(QPainter *painter=nullptr);
+    explicit QmlPainter(QImage *image = nullptr);
     ~QmlPainter();
 
+    bool isActive() const;
+
 public slots:
-    void drawLine(int x1, int y1, int x2, int y2);
+    void setAntialiasing(bool on = true);
+    //
+    void drawLine(qreal x1, qreal y1, qreal x2, qreal y2);
 
 private:
-    QPainter *painter;
+    QPainter painter;
 };
 
 #endif // QMLPAINTER_H

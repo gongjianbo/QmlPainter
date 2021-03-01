@@ -1,19 +1,29 @@
 #include "QmlPainter.h"
 
+#include <QtMath>
 #include <QDebug>
 
-QmlPainter::QmlPainter(QPainter *painter)
-    :painter(painter)
+QmlPainter::QmlPainter(QImage *image)
+    : painter(image)
 {
-    //qDebug()<<"init";
 }
 
 QmlPainter::~QmlPainter()
 {
-    //qDebug()<<"free";
+
 }
 
-void QmlPainter::drawLine(int x1, int y1, int x2, int y2)
+bool QmlPainter::isActive() const
 {
-    painter->drawLine(x1,y1,x2,y2);
+    return painter.isActive();
+}
+
+void QmlPainter::setAntialiasing(bool on)
+{
+    painter.setRenderHint(QPainter::Antialiasing,on);
+}
+
+void QmlPainter::drawLine(qreal x1, qreal y1, qreal x2, qreal y2)
+{
+    painter.drawLine(QPointF(x1,y1),QPointF(x2,y2));
 }

@@ -5,6 +5,13 @@
 #include <QImage>
 #include "QmlPainter.h"
 
+/**
+ * @brief 画布
+ * @author 龚建波
+ * @date 2021-3-1
+ * @details
+ * 调用repaint刷新，然后使用paint信号传递来的painter指针绘制
+ */
 class QmlCanvas : public QQuickItem
 {
     Q_OBJECT
@@ -13,6 +20,7 @@ public:
     explicit QmlCanvas(QQuickItem *parent = nullptr);
     ~QmlCanvas();
 
+    //背景色
     QColor getBackgroundColor() const { return backgroundColor; }
     void setBackgroundColor(const QColor &color);
 
