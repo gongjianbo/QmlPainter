@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 
 #include "QmlPainter.h"
+#include "QmlPath.h"
 #include "QmlCanvas.h"
 
 int main(int argc, char *argv[])
@@ -12,6 +13,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     qmlRegisterType<QmlPainter>("Test",1,0,"QmlPainter");
+    qmlRegisterType<QmlPath>("Test",1,0,"QmlPath");
     qmlRegisterType<QmlCanvas>("Test",1,0,"QmlCanvas");
 
     QQmlApplicationEngine engine;

@@ -13,6 +13,7 @@ CONFIG += utf8_source
 SOURCES += \
         QmlCanvas.cpp \
         QmlPainter.cpp \
+        QmlPath.cpp \
         main.cpp
 
 RESOURCES += qml.qrc
@@ -30,4 +31,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     QmlCanvas.h \
-    QmlPainter.h
+    QmlPainter.h \
+    QmlPath.h
