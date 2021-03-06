@@ -34,11 +34,12 @@ Window {
             //可以减小步进，如0.5，绘制更圆滑
             path.clearPath();
             path.moveTo(0,center+wave*Math.sin((begin)*Math.PI/180));
-            for(let i=1;i<width+1;i++)
+            for(let i=1;i<width;i+=5)
             {
                 //sin值域为[-1,1]，这里相当于把y值下移并放大
                 path.lineTo(i,center+wave*Math.sin((begin+i*2)*Math.PI/180));
             }
+            path.lineTo(width,center+wave*Math.sin((begin+width*2)*Math.PI/180));
             path.lineTo(width,height);
             path.lineTo(0,height);
             path.closeSubpath();
@@ -47,10 +48,11 @@ Window {
             //第二个波浪
             path.clearPath();
             path.moveTo(0,center+wave*Math.sin((begin-60)*Math.PI/180));
-            for(let i2=1;i2<width+1;i2++)
+            for(let i2=1;i2<width;i2+=5)
             {
                 path.lineTo(i2,center+wave*Math.sin((begin-60+i2*2)*Math.PI/180));
             }
+            path.lineTo(width,center+wave*Math.sin((begin-60+width*2)*Math.PI/180));
             path.lineTo(width,height);
             path.lineTo(0,height);
             path.closeSubpath();
@@ -68,7 +70,7 @@ Window {
             repeat: true
             interval: 20
             onTriggered: {
-                canvas.begin+=3;
+                canvas.begin+=5;
                 if(canvas.begin>360)
                     canvas.begin=0;
                 canvas.repaint();
